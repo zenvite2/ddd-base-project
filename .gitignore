@@ -1,0 +1,21 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+*.iml
+.idea/
+*.ipr
+*.iws
+out/
+
+*.class
+*.jar
+*.war
+
+*.log
+hs_err_pid*
+
+# IDE / Claude
+.claude/
+

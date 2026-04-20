@@ -1,0 +1,24 @@
+# Test profile — uses local MariaDB (docker compose), disables Kafka/Redis
+spring:
+  datasource:
+    url: jdbc:mariadb://localhost:13306/ntbh
+    username: ntbh
+    password: ntbh
+    driver-class-name: org.mariadb.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+  cache:
+    type: none
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+logging:
+  level:
+    vn.com.viettel.vds: DEBUG

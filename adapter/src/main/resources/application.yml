@@ -1,0 +1,59 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: ntbh-base-service # TODO: rename when cloning
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+  jackson:
+    time-zone: Asia/Ho_Chi_Minh
+    default-property-inclusion: non_null
+
+  datasource:
+    url: jdbc:mariadb://localhost:13306/ntbh
+    username: ntbh
+    password: ntbh
+    driver-class-name: org.mariadb.jdbc.Driver
+
+  data:
+    redis:
+      host: localhost
+      port: 16379
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 30m
+
+  kafka:
+    bootstrap-servers: localhost:19092,localhost:19093,localhost:19094
+    consumer:
+      group-id: ${spring.application.name}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: java.util.LinkedHashMap
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+# Temporal workflow orchestration (uncomment when Temporal server is available)
+# temporal:
+#   service-address: localhost:7233
+#   namespace: default
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
