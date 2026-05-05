@@ -1,6 +1,6 @@
-# ntbh-base-project
+# ddd-base-project
 
-Template project for NTBH Platform microservices. Clone and rename to bootstrap a new service with clean architecture,
+Template project for Zenvite2 microservices. Clone and rename to bootstrap a new service with clean architecture,
 domain events, and infrastructure pre-configured.
 
 ## Tech Stack
@@ -8,8 +8,8 @@ domain events, and infrastructure pre-configured.
 | Component    | Version                              |
 |--------------|--------------------------------------|
 | Java         | 21                                   |
-| Gradle       | 8.14 (Kotlin DSL)                    |
-| Spring Boot  | 3.4.9                                |
+| Maven        | via mvnw                             |
+| Spring Boot  | 3.5.13                               |
 | MariaDB      | via Docker                           |
 | Kafka        | KRaft cluster (3 brokers) via Docker |
 | Redis        | via Docker                           |
@@ -18,16 +18,15 @@ domain events, and infrastructure pre-configured.
 ## Project Structure
 
 ```
-ntbh-base-project/
+ddd-base-project/
 ├── domain/              # Pure Java — aggregates, value objects, events, repository interfaces
 ├── application/         # Use case orchestration — ports, commands, results
 ├── adapter/             # Spring Boot app — controllers, JPA, Kafka, config
 │   └── src/main/resources/
 │       ├── application.yml
 │       └── db/migration/        # Flyway SQL migrations
-├── docker/
-│   └── docker-compose.yml       # MariaDB, Redis, Kafka, Kafka UI
-└── build.gradle.kts             # Root build with shared config
+└── docker/
+    └── docker-compose.yml       # MariaDB, Redis, Kafka, Kafka UI
 ```
 
 **Dependency rule:** `domain ← application ← adapter` — inner layers never import outer.
@@ -36,7 +35,7 @@ ntbh-base-project/
 
 - Java 21+
 - Docker & Docker Compose
-- Access to VDS Nexus (credentials in `gradle.properties`)
+- Access to VDS Nexus (credentials in `~/.m2/settings.xml`)
 
 ## Quick Start
 
@@ -45,10 +44,10 @@ ntbh-base-project/
 cd docker && docker compose up -d && cd ..
 
 # 2. Build
-./gradlew build -x test
+./mvnw clean install -DskipTests
 
 # 3. Run
-./gradlew :adapter:bootRun
+./mvnw spring-boot:run -pl adapter
 
 # 4. Verify
 curl http://localhost:8088/actuator/health
@@ -62,41 +61,41 @@ Start all dependencies before building or running tests:
 cd docker && docker compose up -d
 ```
 
-| Service  | Container        | Host Port           |
-|----------|------------------|---------------------|
-| MariaDB  | ntbh-mariadb     | 13306               |
-| Redis    | ntbh-redis       | 16379               |
-| Kafka    | ntbh-kafka-1/2/3 | 19092, 19093, 19094 |
-| Kafka UI | ntbh-kafka-ui    | 18080               |
+| Service  | Container      | Host Port           |
+|----------|----------------|---------------------|
+| MariaDB  | base-mariadb   | 13306               |
+| Redis    | base-redis     | 16379               |
+| Kafka    | base-kafka-1/2/3 | 19092, 19093, 19094 |
+| Kafka UI | base-kafka-ui  | 18080               |
 
 > Ports use `1` prefix (13306 instead of 3306) to avoid conflicts with other services on the dev machine.
 
 Health checks:
 
 ```bash
-docker exec ntbh-mariadb mariadb -untbh -pntbh -e "SELECT 1"
-docker exec ntbh-redis redis-cli ping
-docker ps --filter name=ntbh-kafka
+docker exec base-mariadb mariadb -ubaseapp -pbaseapp -e "SELECT 1"
+docker exec base-redis redis-cli ping
+docker ps --filter name=base-kafka
 ```
 
 ## Build & Test
 
 ```bash
 # Build without tests
-./gradlew build -x test
+./mvnw clean install -DskipTests
 
 # Unit tests (no Docker needed)
-./gradlew :domain:test           # Domain aggregate logic
-./gradlew :application:test      # UseCase tests (mocked repos)
+./mvnw test -pl domain                           # Domain aggregate logic
+./mvnw test -pl application                      # UseCase tests (mocked repos)
 
 # Architecture tests (no Docker needed)
-./gradlew :adapter:test --tests '*ArchitectureTest'
+./mvnw test -pl adapter -Dtest='ArchitectureTest'
 
 # Integration tests (Docker required)
-./gradlew :adapter:test --tests '*IntegrationTest'
+./mvnw test -pl adapter -Dtest='*IntegrationTest'
 
 # Full build (unit + integration, Docker required)
-./gradlew build
+./mvnw clean install
 ```
 
 ## Architecture
@@ -123,7 +122,7 @@ UseCase (@EventPublishHandler)
 
 Events extend `AbstractDomainEvent(DomainEventType, aggregateType, DTime)` and auto-generate `eventId` (UUID v7).
 
-Kafka topic format: `ntbh.{boundedContext}.{eventName}` (e.g. `ntbh.order.confirmed`)
+Kafka topic format: `{app}.{boundedContext}.{eventName}` (e.g. `base.order.confirmed`)
 
 ### Kafka Event Envelope
 
@@ -144,7 +143,7 @@ All events published to Kafka follow the standard envelope format:
   "metadata": {
     "correlationId": null,
     "causationId": null,
-    "publishedBy": "ntbh-base-service"
+    "publishedBy": "base-service"
   }
 }
 ```
@@ -162,13 +161,15 @@ Violations fail the build.
 
 ## Creating a New Service
 
-1. Copy `ntbh-base-project/` → `ntbh-{service-name}/`
-2. Update `settings.gradle.kts`: change `rootProject.name`
-3. Rename package `ntbh.base` → `ntbh.{service}`
-4. Rename `BaseApplication` → `{Service}Application`
-5. Remove all sample code (grep for `TODO: Remove this sample code`)
-6. Add Flyway migrations in `adapter/src/main/resources/db/migration/`
-7. Implement domain aggregates, use cases, and adapters
+1. Copy `ddd-base-project/` → `{service-name}/`
+2. Update root `pom.xml`: change `artifactId` and `name`
+3. Update `application.yml`: rename `spring.application.name`
+4. Rename package `com.zenvite2.base` → `com.zenvite2.{service}`
+5. Rename `BaseApplication` → `{Service}Application`
+6. Study the sample code — note file locations, class names, and how layers connect
+7. Remove sample code (grep `TODO: Remove this sample code`)
+8. Add Flyway migrations in `adapter/src/main/resources/db/migration/`
+9. Implement domain aggregates, use cases, and adapters
 
 ## Key Dependencies
 
@@ -184,10 +185,10 @@ Violations fail the build.
 
 Application config: `adapter/src/main/resources/application.yml`
 
-| Property                         | Default                               | Description        |
-|----------------------------------|---------------------------------------|--------------------|
-| `server.port`                    | 8088                                  | HTTP port          |
-| `spring.datasource.url`          | `jdbc:mariadb://localhost:13306/ntbh` | MariaDB connection |
-| `spring.kafka.bootstrap-servers` | `localhost:19092,...`                 | Kafka brokers      |
-| `spring.data.redis.host`         | `localhost`                           | Redis host         |
-| `spring.data.redis.port`         | 16379                                 | Redis port         |
+| Property                         | Default                                  | Description        |
+|----------------------------------|------------------------------------------|--------------------|
+| `server.port`                    | 8088                                     | HTTP port          |
+| `spring.datasource.url`          | `jdbc:mariadb://localhost:13306/basedb`  | MariaDB connection |
+| `spring.kafka.bootstrap-servers` | `localhost:19092,...`                    | Kafka brokers      |
+| `spring.data.redis.host`         | `localhost`                              | Redis host         |
+| `spring.data.redis.port`         | 16379                                    | Redis port         |

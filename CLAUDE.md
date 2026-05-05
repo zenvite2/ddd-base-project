@@ -1,8 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-Template project for NTBH Platform microservices. Clone and rename to create a new service.
+Template project for Zenvite2 microservices. Clone and rename to create a new service.
 
 ## Architecture
 
@@ -22,8 +20,8 @@ UseCase (@EventPublishHandler) → DomainEventPublisher.publish() [ThreadLocal]
 
 - Events extend `AbstractDomainEvent(DomainEventType, aggregateType, DTime)` — auto-generates `eventId` (UUID v7)
 - `@EventPublishHandler` on UseCase method is **required** for events to dispatch
-- Kafka topic: `ntbh.{boundedContext}.{eventName}` — e.g. `ntbh.order.confirmed`
-- Kafka envelope: see `architecture.md` line 514 — includes eventId, eventType, eventVersion, tenantId, aggregateId, aggregateType, payload, metadata (correlationId, causationId, publishedBy)
+- Kafka topic: `{app}.{boundedContext}.{eventName}` — e.g. `base.order.confirmed`
+- Kafka envelope: includes eventId, eventType, eventVersion, tenantId, aggregateId, aggregateType, payload, metadata (correlationId, causationId, publishedBy)
 - Consumer must call Facade, never UseCase directly
 
 ## Pitfalls
@@ -54,9 +52,10 @@ cd docker && docker compose up -d    # MariaDB:13306, Redis:16379, Kafka:19092-9
 
 ## New Service from Template
 
-1. Clone `ntbh-base-project/` → `ntbh-{service-name}/`
+1. Copy `ddd-base-project/` → `{service-name}/`
 2. `pom.xml` (root + modules) → update `artifactId` and `name`
-3. Rename package `ntbh.base` → `ntbh.{service}`
-4. Rename `BaseApplication` → `{Service}Application`
-5. Study the sample code — note file locations, class names, and how layers connect (these are reference examples for the architecture)
-6. Remove sample code (grep `TODO: Remove this sample code`)
+3. Update `application.yml` → rename `spring.application.name`
+4. Rename package `com.zenvite2.base` → `com.zenvite2.{service}`
+5. Rename `BaseApplication` → `{Service}Application`
+6. Study the sample code — note file locations, class names, and how layers connect (these are reference examples for the architecture)
+7. Remove sample code (grep `TODO: Remove this sample code`)

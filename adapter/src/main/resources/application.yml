@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: ntbh-base-service # TODO: rename when cloning
+    name: base-service # TODO: rename when cloning this template
 
   jpa:
     hibernate:
@@ -15,9 +15,9 @@ spring:
     default-property-inclusion: non_null
 
   datasource:
-    url: jdbc:mariadb://localhost:13306/ntbh
-    username: ntbh
-    password: ntbh
+    url: jdbc:mariadb://localhost:13306/basedb
+    username: baseapp
+    password: baseapp
     driver-class-name: org.mariadb.jdbc.Driver
 
   data:

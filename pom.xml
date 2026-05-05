@@ -11,11 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>vn.com.viettel.vds.ntbh</groupId>
-    <artifactId>ntbh-base-project</artifactId>
+    <groupId>com.zenvite2</groupId>
+    <artifactId>ddd-base-project</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>ntbh-base-project</name>
+    <name>ddd-base-project</name>
 
     <modules>
         <module>domain</module>
